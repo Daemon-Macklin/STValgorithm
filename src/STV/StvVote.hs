@@ -1,27 +1,24 @@
-module STV.StvVote where
+ module STV.StvVote where
 
 import CleanData.CleanData
 
 winners :: [Candidate]
 winners = []
 
-start :: String -> [(String, Double)]
-start seats = map getCount (mainFunction (toInt seats) 0 candidates formatVotes "count" winners)
+start :: String -> [Vote] -> [Candidate] -> Int -> [(String, Double)]
+start seats votes candidates quota = map getCount (mainFunction (toInt seats) quota 0 candidates votes "count" winners)
 
-toInt :: String -> Int
-toInt string = read string::Int
-
-mainFunction :: Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
-mainFunction numOfSeats seatsFilled cans votes cycle elected
+mainFunction :: Int -> Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
+mainFunction numOfSeats quota seatsFilled cans votes cycle elected
                                     | numOfSeats == seatsFilled = elected
-                                    | cycle == "winners" = mainFunction numOfSeats (seatsFilled) cans (updateWeights (snd (head winners)) numOfSeats) "losers" winners
-                                    | cycle == "losers" = mainFunction numOfSeats (seatsFilled) (removeCandidate cans elected) ((updateWeights(lastCandidateVotes cans) numOfSeats) ++ votes) "count" elected 
-                                    | seatsFilled == 0 = mainFunction numOfSeats (seatsFilled + 1) firstCans votes "winners" elected
-                                    | otherwise = mainFunction numOfSeats (seatsFilled + 1) currentCans newVotes "winners" elected
+                                    | cycle == "winners" = mainFunction numOfSeats quota (seatsFilled) cans (updateWeights (snd (head winners)) numOfSeats quota) "losers" winners
+                                    | cycle == "losers" = mainFunction numOfSeats quota (seatsFilled) (removeCandidate cans elected) ((updateWeights(lastCandidateVotes cans) numOfSeats quota) ++ votes) "count" elected 
+                                    | seatsFilled == 0 = mainFunction numOfSeats quota (seatsFilled + 1) firstCans votes "winners" elected
+                                    | otherwise = mainFunction numOfSeats quota (seatsFilled + 1) currentCans newVotes "winners" elected
                                     where newVotes = snd (head currentCans)
                                           currentCans = allocateVotes (map recycleVote votes) cans
                                           firstCans = allocateVotes votes cans
-                                          winners = findwinners cans numOfSeats elected
+                                          winners = findwinners cans quota elected
 
 removeCandidate :: [Candidate] -> [Candidate] -> [Candidate]
 removeCandidate cans elected 
@@ -37,23 +34,23 @@ removeElectedCans cans elected = rankCandidates([x | x <- cans, (elem x elected)
 lastCandidateVotes :: [Candidate] -> [Vote]
 lastCandidateVotes cans = snd (head( rankCandidates(tail (reverse cans))))
 
-findlosers :: [Candidate] -> Int -> [Candidate]
-findlosers cans seats = rankCandidates(filter ((\x  -> (getValue x) < realToFrac(quota seats)).snd) cans) 
+--findlosers :: [Candidate] -> Int -> [Candidate]
+--findlosers cans seats = rankCandidates(filter ((\x  -> (getValue x) < realToFrac(quota seats)).snd) cans) 
 
 findwinners :: [Candidate] -> Int -> [Candidate] -> [Candidate]
-findwinners cans seats winners  
+findwinners cans quota winners  
                         | length x == 0 = rankCandidates([head(rankCandidates(cans))] ++ winners)
                         | otherwise = rankCandidates(x ++ winners)
-                        where x = (filter ((\x  -> (getValue x) > realToFrac(quota seats)).snd) cans)
+                        where x = (filter ((\x  -> (getValue x) > realToFrac(quota)).snd) cans)
 
 recycleVote :: Vote -> Vote 
 recycleVote vote = ((drop 1 (fst vote), snd vote))
 
-updateWeights :: [Vote] -> Int -> [Vote]
-updateWeights votes seats = map (updateWeight ((getValue votes) * 1000) (length votes) seats) votes 
+updateWeights :: [Vote] -> Int -> Int -> [Vote]
+updateWeights votes seats quota = map (updateWeight ((getValue votes) * 1000) (length votes) seats quota) votes 
 
-updateWeight :: Double -> Int -> Int -> Vote -> Vote
-updateWeight totalWeight total seats vote = (fst vote, (snd vote * (realToFrac(((total - (quota seats)) * 1000)) / realToFrac(totalWeight))))
+updateWeight :: Double -> Int -> Int -> Int -> Vote -> Vote
+updateWeight totalWeight total seats quota vote = (fst vote, (snd vote * (realToFrac(total - (quota * 1000)) / realToFrac(totalWeight))))
                                         
 rank :: [Vote] -> [Candidate]  -> [Result]
 rank xs cans = map getCount (allocateVotes xs cans)

@@ -30,6 +30,8 @@ library:
     - CleanData.CleanData
     - Alternate.AltVote
     - STV.StvVote
+  dependencies:
+    - split
 
 executables:
   DMacklinVotingAssign-exe:
@@ -41,6 +43,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - DMacklinVotingAssign
+    - split
 
 tests:
   DMacklinVotingAssign-test:
@@ -52,3 +55,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - DMacklinVotingAssign
+    - split

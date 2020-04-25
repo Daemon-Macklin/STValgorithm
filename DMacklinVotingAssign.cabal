@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 56966633bbeda3abc46078a900a52f93e0b0ba0c47d216b13d0d6fb21c52655c
+-- hash: a3514ac528da071780e152f928e1d7c1aa419d9c2d59a5ae80cdd84429433102
 
 name:           DMacklinVotingAssign
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , split
   default-language: Haskell2010
 
 executable DMacklinVotingAssign-exe
@@ -47,6 +48,7 @@ executable DMacklinVotingAssign-exe
   build-depends:
       DMacklinVotingAssign
     , base >=4.7 && <5
+    , split
   default-language: Haskell2010
 
 test-suite DMacklinVotingAssign-test
@@ -60,4 +62,5 @@ test-suite DMacklinVotingAssign-test
   build-depends:
       DMacklinVotingAssign
     , base >=4.7 && <5
+    , split
   default-language: Haskell2010

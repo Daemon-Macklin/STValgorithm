@@ -10,10 +10,26 @@ import Text.Read
 main :: IO ()
 main = do
 
-    print "Alternative Vote Results:"
-    print $ startAltVote formatVotes
-    print "========================"
+    rawVotes <- readFile "votes.csv"
     print "Seats for STV?"
     seats <- getLine
+
+    -- print $ rawVotes
+
+    let candidates = (getCandidates rawVotes)
+    let quota = (getQuota rawVotes seats) 
+    let votes = (formatVotes rawVotes)
+
+    print "Candidates:"
+    print $ candidates
+    print "========================"
+
+    print "Alternative Vote Results:"
+    print $ startAltVote votes 
+    print "========================"
+    
+    print "STV Quota"
+    print $ quota
+    -- print $ votes
     print "Single Transferable Vote Results:"
-    print $ start seats
+    print $ start seats votes candidates quota 
