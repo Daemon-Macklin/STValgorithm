@@ -20,6 +20,8 @@ main = do
     let quota = (getQuota rawVotes seats) 
     let votes = (formatVotes rawVotes)
 
+    print "Number of Votes"
+    print $ length votes
     print "Candidates:"
     print $ candidates
     print "========================"

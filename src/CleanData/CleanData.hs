@@ -22,7 +22,7 @@ formatVotes :: String -> [Vote]
 formatVotes rawVotes = filter ((/= []).fst) (map (formatVote) (sortVotes rawVotes))
 
 formatVote :: [(String, String)] -> Vote
-formatVote vote = ([fst x | x <- vote, snd x /= "*"], weight)
+formatVote vote = ([fst x | x <- vote, snd x /= "*"  && snd x /= ""], weight)
 
 sortVotes :: String -> [[(String, String)]]
 sortVotes rawVotes = map (isort) (cleanVotes rawVotes) 
