@@ -16,7 +16,7 @@ getCandidates :: String -> [Candidate]
 getCandidates rawVotes = [(x, []) | x <- drop 2 (head $ dirtyVotes rawVotes)]
 
 getQuota :: String -> String -> Int
-getQuota rawVotes seats = ((length $ formatVotes rawVotes) `div` ((toInt seats) + 1)) + 1
+getQuota rawVotes seats = (((length $ formatVotes rawVotes) * 1000) `div` ((toInt seats) + 1)) + 1000
 
 formatVotes :: String -> [Vote]
 formatVotes rawVotes = filter ((/= []).fst) (map (formatVote) (sortVotes rawVotes))
