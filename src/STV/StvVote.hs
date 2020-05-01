@@ -12,11 +12,11 @@ start seats votes candidates quota = map getCount (mainFunction (toInt seats) qu
 mainFunction :: Int -> Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
 mainFunction numOfSeats quota seatsFilled cans votes cycle elected
                                     | numOfSeats == seatsFilled = elected
-                                    | cycle == "winners" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n\n") mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights(winnersVotes) quota) "winnersCount" winners
-                                    | cycle == "losers" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n\n\n") mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
-                                    | cycle == "winnersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n\n\n") mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
-                                    | cycle == "losersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n\n\n") mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
-                                    | seatsFilled == 0 = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n\n\n") mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
+                                    | cycle == "winners" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights(winnersVotes) quota) "winnersCount" winners
+                                    | cycle == "losers" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
+                                    | cycle == "winnersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
+                                    | cycle == "losersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
+                                    | seatsFilled == 0 = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
                                     where currentCans = allocateVotes (recycleVotes elected votes) cans
                                           firstCans = allocateVotes votes cans
                                           winners = findwinners cans quota elected
@@ -78,10 +78,10 @@ updateWeights votes quota = map (updateWeight ((getValue votes)) quota) votes
 updateWeight :: Double -> Int -> Vote -> Vote
 updateWeight totalWeight quota vote
                               | x <= y = (fst vote, snd vote)
-                              | otherwise = trace(show y)(fst vote, snd vote * (y/x))
+                              | otherwise = (fst vote, snd vote * (y/x))
                               where
                                     x = realToFrac totalWeight
-                                    y = totalWeight - (realToFrac (quota))
+                                    y = x - (realToFrac (quota))
 
 -- (fst vote, (snd vote * (realToFrac(total - (quota)) / realToFrac(totalWeight))))
 rank :: [Vote] -> [Candidate]  -> [Result]
