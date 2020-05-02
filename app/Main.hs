@@ -10,7 +10,7 @@ import Text.Read
 main :: IO ()
 main = do
 
-    rawVotes <- readFile "cleaning/sampleuk3.csv"
+    rawVotes <- readFile "votes.csv"
     print "Seats for STV?"
     seats <- getLine
 
