@@ -10,7 +10,7 @@ import Text.Read
 main :: IO ()
 main = do
 
-    rawVotes <- readFile "votes.csv"
+    rawVotes <- readFile "cleaning/sampleuk3.csv"
     print "Seats for STV?"
     seats <- getLine
 
@@ -19,6 +19,8 @@ main = do
     let candidates = (getCandidates rawVotes)
     let quota = (getQuota rawVotes seats) 
     let votes = (formatVotes rawVotes)
+
+    print votes
 
     print "Number of Votes"
     print $ length votes
@@ -32,6 +34,6 @@ main = do
     
     print "STV Quota"
     print $ quota
-    -- print $ votes
+    
     print "Single Transferable Vote Results:"
     print $ start seats votes candidates quota 
