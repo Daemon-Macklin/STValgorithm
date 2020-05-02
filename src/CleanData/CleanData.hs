@@ -63,8 +63,8 @@ checkDup :: [(String, String)] -> [(String, String)]
 checkDup ballot = head (groupBy (\a b -> ((toInt . snd) a)+1 == ((toInt . snd)b)) ballot)
 
 checkGaps :: [(String, String)] -> [(String, String)]
-checkGaps ballot = trace(show( [x | x <- votes, length x == 1] )) (filter ((== "*").snd) ballot) ++ [x | x <- votes, length x == 1] 
-            where votes = checkDup (filter ((/= "*").snd) ballot)
+checkGaps ballot = (filter ((== "*").snd) ballot) ++ concat ([x | x <- votes, length x == 1]) 
+            where votes = checkGap (filter ((/= "*").snd) ballot)
 
 checkGap :: [(String, String)] -> [[(String, String)]]
 checkGap ballot = (groupBy (\a b -> ((toInt . snd) a) == ((toInt . snd)b)) ballot)
