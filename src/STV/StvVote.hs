@@ -11,16 +11,23 @@ start seats votes candidates quota = map getCount (mainFunction (toInt seats) qu
 
 mainFunction :: Int -> Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
 mainFunction numOfSeats quota seatsFilled cans votes cycle elected
-                                    | numOfSeats == seatsFilled = elected
-                                    | cycle == "winners" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights(winnersVotes) quota) "winnersCount" winners
-                                    | cycle == "losers" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
-                                    | cycle == "winnersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
-                                    | cycle == "losersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
-                                    | seatsFilled == 0 = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
+                                    | numOfSeats == seatsFilled = verifyResult elected cans
+                                    | cycle == "winners" = mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights(winnersVotes) quota) "winnersCount" winners
+                                    | cycle == "losers" = mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
+                                    | cycle == "winnersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
+                                    | cycle == "losersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
+                                    | seatsFilled == 0 = mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
                                     where currentCans = allocateVotes (recycleVotes cans votes) cans
                                           firstCans = allocateVotes votes cans
                                           winners = findwinners cans quota elected
                                           winnersVotes = findwinnersVotes cans quota elected
+
+-- trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n")
+
+verifyResult :: [Candidate] -> [Candidate] -> [Candidate]
+verifyResult elected cans 
+                        | length cans == 0 = reverse elected
+                        | otherwise = allocateVotes (recycleVotes ([head elected]) ((snd . head) cans)) elected
 
 overQuota :: [Candidate] -> Int -> String
 overQuota cans quota  
@@ -51,8 +58,7 @@ findwinners cans quota winners
                         where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
 
 findwinnersVotes :: [Candidate] -> Int -> [Candidate] -> [Vote]
-findwinnersVotes cans quota winners
-                        -- | (length cans == 2) && (length x == 0) =  
+findwinnersVotes cans quota winners  
                         | length x == 0 = (snd . head) $ rankCandidates(cans)
                         | otherwise = (snd . head) $ rankCandidates(x)
                         where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
