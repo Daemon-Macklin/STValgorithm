@@ -39,7 +39,7 @@ removeCandidate :: [Candidate] -> [Candidate] -> [Candidate]
 removeCandidate cans elected 
                       | length x == 0 = []
                       | length x == 1 = x
-                      | otherwise = rankCandidates ( tail x)
+                      | otherwise = trace(show ((fst . head) x) ++ "Eleminated") rankCandidates ( tail x)
                       where x = reverse (rankCandidates(removeElectedCans cans elected))
 
 removeElectedCans :: [Candidate] -> [Candidate] -> [Candidate]
@@ -53,8 +53,8 @@ lastCandidateVotes cans
 
 findwinners :: [Candidate] -> Int -> [Candidate] -> [Candidate]
 findwinners cans quota winners  
-                        | length x == 0 = ([head(rankCandidates(cans))] ++ winners)
-                        | otherwise = (rankCandidates(take 1 x) ++ winners)
+                        | length x == 0 = trace(show ( fst (head (rankCandidates(cans))) ) ++ " Elected") ([head(rankCandidates(cans))] ++ winners)
+                        | otherwise = trace(show ( fst (head (rankCandidates(take 1 x))) ) ++ " Elected") (rankCandidates(take 1 x) ++ winners)
                         where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
 
 findwinnersVotes :: [Candidate] -> Int -> [Candidate] -> [Vote]
@@ -76,15 +76,15 @@ findValidVote cans index vote
                               | otherwise = drop index vote
 
 updateWeights :: [Vote] -> Int -> [Vote]
-updateWeights votes quota = map (updateWeight ((getValue votes)) quota) votes 
+updateWeights votes quota = trace ("New Weight Factor: " ++ show (calcWeightFactor votes quota))  map (\ x -> (fst x, (snd x * (calcWeightFactor votes quota)))) votes 
 
-updateWeight :: Double -> Int -> Vote -> Vote
-updateWeight totalWeight quota vote
-                              | x <= y = (fst vote, snd vote)
-                              | otherwise = (fst vote, snd vote * (y/x))
-                              where
-                                    x = realToFrac totalWeight
-                                    y = x - (realToFrac (quota))
+calcWeightFactor:: [Vote] -> Int -> Double
+calcWeightFactor votes quota
+                        | x <= y = 1
+                        | otherwise = y / x
+                        where
+                              x = realToFrac (getValue votes)
+                              y = x - (realToFrac (quota))
 
 rank :: [Vote] -> [Candidate]  -> [Result]
 rank xs cans = map getCount (allocateVotes xs cans)
