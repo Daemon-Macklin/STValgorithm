@@ -14,7 +14,7 @@ start seats votes candidates quota = map getCount (mainFunction (toInt seats) qu
 mainFunction :: Int -> Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
 mainFunction numOfSeats quota seatsFilled cans votes cycle elected
                                     | numOfSeats == seatsFilled = verifyResult elected cans
-                                    | cycle == "winners" = mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights(winnersVotes) quota) "winnersCount" winners
+                                    | cycle == "winners" = mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights (removeElectedCans cans winners) (winnersVotes) quota) "winnersCount" winners
                                     | cycle == "losers" = mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
                                     | cycle == "winnersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
                                     | cycle == "losersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
@@ -88,18 +88,22 @@ findValidVote cans index vote
                               | elem (head (drop index vote)) cans == False = findValidVote cans (index + 1) vote
                               | otherwise = drop index vote
 
+-- Function to remove-nontransferable weights then update weight of ballots
+updateWeights :: [Candidate] -> [Vote] -> Int -> [Vote]
+updateWeights candidates votes quota = updateWeight (recycleVotes candidates votes) quota (getValue votes)
+
 -- Function to update all of the weights
-updateWeights :: [Vote] -> Int -> [Vote]
-updateWeights votes quota = trace ("New Weight Factor: " ++ show (calcWeightFactor votes quota))  map (\ x -> (fst x, (snd x * (calcWeightFactor votes quota)))) votes 
+updateWeight :: [Vote] -> Int -> Double -> [Vote]
+updateWeight votes quota total = trace ("New Weight Factor: " ++ show (calcWeightFactor votes quota total))  map (\ x -> (fst x, (snd x * (calcWeightFactor votes quota total)))) votes 
 
 -- Funtion to caclulate the new weight factor
-calcWeightFactor:: [Vote] -> Int -> Double
-calcWeightFactor votes quota
+calcWeightFactor:: [Vote] -> Int -> Double -> Double
+calcWeightFactor votes quota total
                         | x <= y = 1
                         | otherwise = y / x
                         where
                               x = realToFrac (getValue votes)
-                              y = x - (realToFrac (quota))
+                              y = total - (realToFrac (quota))
 
 -- Function to rank the candidates
 rank :: [Vote] -> [Candidate]  -> [Result]
