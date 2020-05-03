@@ -4,36 +4,37 @@ import Data.List
 
 import CleanData.CleanData
 
--- Count occurances of an element in a list
+-- Function to count occurances of a vote in a list
 countOccurs :: Eq a => a -> [a] -> Int
 countOccurs x = length . filter (== x)
 
--- Remove duplicates from a list
+-- Function to remove duplicates from a list
 removeDups :: Eq a => [a] -> [a]
 removeDups []     = []
 removeDups (x:xs) = x : filter (/= x) (removeDups xs)
 
--- Extracting the unique elements and the number of occurances in it from a list as a two tuple
+-- Function to extracting unique vote and the number of occurances 
 buildUnique :: Ord a => [a] -> [(Int, a)]
 buildUnique vs = sort [(countOccurs v vs, v) | v <- removeDups vs]
 
--- Remove any empty lists from a master list
+-- Function to Remove empty lists
 removeEmpty :: Eq a => [[a]] -> [[a]]
 removeEmpty = filter (/= [])
 
--- Remove any occurances of an element in list inside lists
+-- Function to remove any occurances of an vote
 removeOccurs :: Eq a => a -> [[a]] -> [[a]]
 removeOccurs x = map (filter (/= x))
 
--- Sort the unique elements and the number of occurances in it from a list
+-- Function to sort the unique votes and the number of occurances
 sortUnique :: Ord a => [[a]] -> [a]
 sortUnique = map snd . buildUnique . map head
 
--- Find the unique element with the most number of occurances in it from a list
+-- Function to find the unique vote with the most number of occurances 
 alternativeVote :: Ord a => [[a]] -> a
 alternativeVote bs = case sortUnique (removeEmpty bs) of
     [c]    -> c
     (c:cs) -> alternativeVote (removeOccurs c bs)
 
+-- Function to remove wights from votes list and start 
 startAltVote :: [Vote] -> String
 startAltVote votes = alternativeVote (map (fst) votes)
