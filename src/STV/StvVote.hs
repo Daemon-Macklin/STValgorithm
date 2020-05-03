@@ -17,7 +17,7 @@ mainFunction numOfSeats quota seatsFilled cans votes cycle elected
                                     | cycle == "winnersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
                                     | cycle == "losersCount" = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
                                     | seatsFilled == 0 = trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n") mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
-                                    where currentCans = allocateVotes (recycleVotes elected votes) cans
+                                    where currentCans = allocateVotes (recycleVotes cans votes) cans
                                           firstCans = allocateVotes votes cans
                                           winners = findwinners cans quota elected
                                           winnersVotes = findwinnersVotes cans quota elected
@@ -26,7 +26,7 @@ overQuota :: [Candidate] -> Int -> String
 overQuota cans quota  
                   | x == [] = "losers"
                   | otherwise = "winners"
-                  where x = filter ((\x  -> (getValue x) > realToFrac(quota)).snd) cans
+                  where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
 
 removeCandidate :: [Candidate] -> [Candidate] -> [Candidate]
 removeCandidate cans elected 
@@ -38,38 +38,35 @@ removeCandidate cans elected
 removeElectedCans :: [Candidate] -> [Candidate] -> [Candidate]
 removeElectedCans cans elected = rankCandidates([x | x <- cans, (elem x elected) == False])
 
-
 lastCandidateVotes :: [Candidate] -> [Vote]
 lastCandidateVotes cans
                       | length x == 0 = []
                       | otherwise = (snd . head) x
                       where x = reverse (rankCandidates(cans))
 
---findlosers :: [Candidate] -> Int -> [Candidate]
---findlosers cans seats = rankCandidates(filter ((\x  -> (getValue x) < realToFrac(quota seats)).snd) cans) 
-
 findwinners :: [Candidate] -> Int -> [Candidate] -> [Candidate]
 findwinners cans quota winners  
                         | length x == 0 = ([head(rankCandidates(cans))] ++ winners)
                         | otherwise = (rankCandidates(take 1 x) ++ winners)
-                        where x = filter ((\x  -> (getValue x) > realToFrac(quota)).snd) cans
+                        where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
 
 findwinnersVotes :: [Candidate] -> Int -> [Candidate] -> [Vote]
-findwinnersVotes cans quota winners  
+findwinnersVotes cans quota winners
+                        -- | (length cans == 2) && (length x == 0) =  
                         | length x == 0 = (snd . head) $ rankCandidates(cans)
                         | otherwise = (snd . head) $ rankCandidates(x)
-                        where x = filter ((\x  -> (getValue x) > realToFrac(quota)).snd) cans
+                        where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
 
 recycleVotes :: [Candidate] -> [Vote] -> [Vote]
-recycleVotes elected votes = filter ((/= []).fst) $ map (recycleVote elected) votes
+recycleVotes cans votes = filter ((/= []).fst) $ map (recycleVote cans) votes
 
 recycleVote :: [Candidate] -> Vote -> Vote 
-recycleVote elected vote = ((findValidVote (map fst elected) 1 (fst vote), snd vote))
+recycleVote cans vote = ((findValidVote (map fst cans) 1 (fst vote), snd vote))
 
 findValidVote :: [String] -> Int -> [String] -> [String]
-findValidVote elected index vote 
+findValidVote cans index vote 
                               | (drop index vote) == [] = drop index vote
-                              | elem (head (drop index vote)) elected == True = findValidVote elected (index + 1) vote
+                              | elem (head (drop index vote)) cans == False = findValidVote cans (index + 1) vote
                               | otherwise = drop index vote
 
 updateWeights :: [Vote] -> Int -> [Vote]
@@ -83,7 +80,6 @@ updateWeight totalWeight quota vote
                                     x = realToFrac totalWeight
                                     y = x - (realToFrac (quota))
 
--- (fst vote, (snd vote * (realToFrac(total - (quota)) / realToFrac(totalWeight))))
 rank :: [Vote] -> [Candidate]  -> [Result]
 rank xs cans = map getCount (allocateVotes xs cans)
 

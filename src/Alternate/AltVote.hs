@@ -5,35 +5,35 @@ import Data.List
 import CleanData.CleanData
 
 -- Count occurances of an element in a list
-countOccurances :: Eq a => a -> [a] -> Int
-countOccurances x = length . filter (== x)
+countOccurs :: Eq a => a -> [a] -> Int
+countOccurs x = length . filter (== x)
 
 -- Remove duplicates from a list
-removeDuplicates :: Eq a => [a] -> [a]
-removeDuplicates []     = []
-removeDuplicates (x:xs) = x : filter (/= x) (removeDuplicates xs)
+removeDups :: Eq a => [a] -> [a]
+removeDups []     = []
+removeDups (x:xs) = x : filter (/= x) (removeDups xs)
 
 -- Extracting the unique elements and the number of occurances in it from a list as a two tuple
-buildUniqueVotes :: Ord a => [a] -> [(Int, a)]
-buildUniqueVotes vs = sort [(countOccurances v vs, v) | v <- removeDuplicates vs]
+buildUnique :: Ord a => [a] -> [(Int, a)]
+buildUnique vs = sort [(countOccurs v vs, v) | v <- removeDups vs]
 
 -- Remove any empty lists from a master list
-removeEmptyLists :: Eq a => [[a]] -> [[a]]
-removeEmptyLists = filter (/= [])
+removeEmpty :: Eq a => [[a]] -> [[a]]
+removeEmpty = filter (/= [])
 
 -- Remove any occurances of an element in list inside lists
-removeOccurances :: Eq a => a -> [[a]] -> [[a]]
-removeOccurances x = map (filter (/= x))
+removeOccurs :: Eq a => a -> [[a]] -> [[a]]
+removeOccurs x = map (filter (/= x))
 
 -- Sort the unique elements and the number of occurances in it from a list
-sortUniqueVotes :: Ord a => [[a]] -> [a]
-sortUniqueVotes = map snd . buildUniqueVotes . map head
+sortUnique :: Ord a => [[a]] -> [a]
+sortUnique = map snd . buildUnique . map head
 
 -- Find the unique element with the most number of occurances in it from a list
 alternativeVote :: Ord a => [[a]] -> a
-alternativeVote bs = case sortUniqueVotes (removeEmptyLists bs) of
+alternativeVote bs = case sortUnique (removeEmpty bs) of
     [c]    -> c
-    (c:cs) -> alternativeVote (removeOccurances c bs)
+    (c:cs) -> alternativeVote (removeOccurs c bs)
 
 startAltVote :: [Vote] -> String
 startAltVote votes = alternativeVote (map (fst) votes)
