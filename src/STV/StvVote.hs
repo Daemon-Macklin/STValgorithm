@@ -13,10 +13,10 @@ start seats votes candidates quota = map getCount (mainFunction (toInt seats) qu
 -- Recursive Function used to run the election cycles
 mainFunction :: Int -> Int -> Int -> [Candidate] -> [Vote] -> String -> [Candidate] -> [Candidate]
 mainFunction numOfSeats quota seatsFilled cans votes cycle elected
-                                    | numOfSeats == seatsFilled = verifyResult elected cans
+                                    | numOfSeats == seatsFilled = elected 
                                     | cycle == "winners" = mainFunction numOfSeats quota (seatsFilled + 1) (removeElectedCans cans winners) (updateWeights (removeElectedCans cans winners) (winnersVotes) quota) "winnersCount" winners
                                     | cycle == "losers" = mainFunction numOfSeats quota seatsFilled (removeCandidate cans elected) (lastCandidateVotes cans) "losersCount" elected 
-                                    | cycle == "winnersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota cans quota) elected
+                                    | cycle == "winnersCount" =  mainFunction numOfSeats quota seatsFilled currentCans [] (overQuota currentCans quota) elected
                                     | cycle == "losersCount" = mainFunction numOfSeats quota seatsFilled currentCans [] "winners" elected
                                     | seatsFilled == 0 = mainFunction numOfSeats quota seatsFilled firstCans [] "winners" elected
                                     where currentCans = allocateVotes (recycleVotes cans votes) cans
@@ -27,18 +27,12 @@ mainFunction numOfSeats quota seatsFilled cans votes cycle elected
 -- Useful Trace for debuggin mainFunction
 -- trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n")
 
--- Function to verify all votes have been distrubuted correctly
-verifyResult :: [Candidate] -> [Candidate] -> [Candidate]
-verifyResult elected cans 
-                        | length cans == 0 = reverse elected
-                        | otherwise = allocateVotes (recycleVotes ([head elected]) ((snd . head) cans)) elected
-
 -- Function to check if anyone is over the quota to decide the next cycle
 overQuota :: [Candidate] -> Int -> String
 overQuota cans quota  
                   | x == [] = "losers"
                   | otherwise = "winners"
-                  where x = filter ((\x  -> (getValue x) >= realToFrac(quota)).snd) cans
+                  where x = filter ((\ y  -> (getValue y) >= realToFrac(quota)).snd) cans
 
 -- Function to eliminate the lowest candidate
 removeCandidate :: [Candidate] -> [Candidate] -> [Candidate]
@@ -79,7 +73,7 @@ recycleVotes cans votes = filter ((/= []).fst) $ map (recycleVote cans) votes
 
 -- Function to recycle one vote
 recycleVote :: [Candidate] -> Vote -> Vote 
-recycleVote cans vote = ((findValidVote (map fst cans) 1 (fst vote), snd vote))
+recycleVote cans vote = ((findValidVote (map fst cans) 0 (fst vote), snd vote))
 
 -- Function to find the next valid vote on a ballot
 findValidVote :: [String] -> Int -> [String] -> [String]
@@ -90,11 +84,11 @@ findValidVote cans index vote
 
 -- Function to remove-nontransferable weights then update weight of ballots
 updateWeights :: [Candidate] -> [Vote] -> Int -> [Vote]
-updateWeights candidates votes quota = updateWeight (recycleVotes candidates votes) quota (getValue votes)
+updateWeights candidates votes quota = trace("Transferable Votes:" ++ show (length(recycleVotes candidates votes))) updateWeight (recycleVotes candidates votes) quota (getValue votes)
 
 -- Function to update all of the weights
 updateWeight :: [Vote] -> Int -> Double -> [Vote]
-updateWeight votes quota total = trace ("New Weight Factor: " ++ show (calcWeightFactor votes quota total))  map (\ x -> (fst x, (snd x * (calcWeightFactor votes quota total)))) votes 
+updateWeight votes quota total = trace ("New Weight Factor: " ++ show (calcWeightFactor votes quota total) ++ "\nSurplus: " ++ show ((total) - (realToFrac quota)) ++ "\n")  map (\ x -> (fst x, (snd x * (calcWeightFactor votes quota total)))) votes 
 
 -- Funtion to caclulate the new weight factor
 calcWeightFactor:: [Vote] -> Int -> Double -> Double
