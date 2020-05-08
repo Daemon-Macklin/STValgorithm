@@ -27,6 +27,9 @@ mainFunction numOfSeats quota seatsFilled cans votes cycle elected
 -- Useful Trace for debuggin mainFunction
 -- trace("Cycle:" ++ show cycle ++ "\n Current Candidates" ++ show (map getCount cans) ++ "\n Current Winners" ++ show (map getCount elected) ++ "\n")
 
+unelected :: [Candidate] -> [(String, Double)] -> [String] 
+unelected candidates elected = [fst x | x <- candidates, (fst x) `notElem` (map fst elected)]  
+
 -- Function to check if anyone is over the quota to decide the next cycle
 overQuota :: [Candidate] -> Int -> String
 overQuota cans quota  

@@ -34,4 +34,9 @@ main = do
     print $ quota
     
     print "Single Transferable Vote Results:"
-    print $ start seats votes candidates quota 
+    let elected = start seats votes candidates quota 
+
+    print $ elected 
+
+    print "Unelected"
+    print $ unelected candidates elected
